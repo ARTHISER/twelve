@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تست ضبط صدا</title>
+    <title>تست ضبط WAV</title>
     <style>
         body {
             font-family: 'Vazirmatn', sans-serif;
@@ -14,117 +14,90 @@
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            flex-direction: column;
-            gap: 20px;
+        }
+        .container {
+            background: rgba(30, 18, 60, 0.7);
+            backdrop-filter: blur(12px);
+            padding: 40px;
+            border-radius: 16px;
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
         }
         button {
             background: #7c3aed;
             border: none;
             color: #fff;
-            padding: 14px 32px;
+            padding: 12px 28px;
             border-radius: 10px;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             cursor: pointer;
+            margin: 8px;
             transition: 0.2s;
         }
-        button:hover {
-            background: #6d28d9;
-            transform: scale(1.05);
-        }
-        button:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            transform: none;
-        }
-        audio {
-            width: 100%;
-            max-width: 400px;
-            margin-top: 20px;
-            border-radius: 10px;
-        }
-        #status {
-            font-size: 1rem;
-            color: #8b7aaa;
-        }
-        #downloadLink {
-            color: #f97316;
-            text-decoration: none;
-            font-weight: 700;
-        }
-        .container {
-            background: rgba(30, 18, 60, 0.5);
-            backdrop-filter: blur(12px);
-            padding: 40px;
-            border-radius: 16px;
-            border: 1px solid rgba(124, 58, 237, 0.25);
-            max-width: 500px;
-            width: 90%;
-            text-align: center;
-        }
+        button:hover { background: #6d28d9; transform: scale(1.04); }
+        button:disabled { opacity: 0.4; cursor: not-allowed; }
+        audio { width: 100%; margin-top: 16px; border-radius: 8px; }
+        #status { margin-top: 16px; color: #8b7aaa; font-size: 0.95rem; }
+        #uploadStatus { margin-top: 10px; color: #f97316; font-size: 0.9rem; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2 style="color: #a78bfa;">🎤 تست ضبط صدا</h2>
-        <div style="margin: 20px 0;">
-            <button id="startBtn">▶ شروع ضبط</button>
-            <button id="stopBtn" disabled>⏹ توقف و آپلود</button>
+        <h2 style="color:#a78bfa;">🎤 ضبط WAV</h2>
+        <div>
+            <button id="startBtn">▶ شروع</button>
+            <button id="stopBtn" disabled>⏹ توقف</button>
         </div>
+        <audio id="player" controls style="display:none;"></audio>
         <div id="status">وضعیت: آماده</div>
-        <audio id="audioPlayer" controls style="display:none;"></audio>
-        <br>
-        <a id="downloadLink" href="#" download="recording.webm" style="display:none;">⬇ دانلود فایل ضبط‌شده</a>
-        <div id="uploadStatus" style="margin-top:12px;font-size:0.9rem;color:#8b7aaa;"></div>
+        <div id="uploadStatus"></div>
     </div>
 
     <script>
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyeALZn01_n78iBVQNS4iBGFuxBjJbvaTOWw1imRKuMKZJbk1r2KFCL6BQsEikLDo8L/exec';
 
         let mediaRecorder = null;
-        let audioChunks = [];
         let stream = null;
+        let chunks = [];
         const startBtn = document.getElementById('startBtn');
         const stopBtn = document.getElementById('stopBtn');
         const statusDiv = document.getElementById('status');
-        const audioPlayer = document.getElementById('audioPlayer');
-        const downloadLink = document.getElementById('downloadLink');
+        const player = document.getElementById('player');
         const uploadStatus = document.getElementById('uploadStatus');
 
-        startBtn.addEventListener('click', async () => {
+        // ===== ضبط به فرمت WAV با استفاده از Web Audio API =====
+        let audioContext = null;
+        let scriptProcessor = null;
+        let audioInput = null;
+        let audioBuffer = [];
+
+        async function startWavRecording() {
             try {
                 stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream, {
-                    mimeType: 'audio/webm'
-                });
-                audioChunks = [];
-
-                mediaRecorder.ondataavailable = (event) => {
-                    if (event.data.size > 0) {
-                        audioChunks.push(event.data);
-                        console.log('Chunk received:', event.data.size);
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const sampleRate = audioContext.sampleRate;
+                const source = audioContext.createMediaStreamSource(stream);
+                
+                // ScriptProcessorNode برای دریافت داده‌های خام PCM
+                const bufferSize = 4096;
+                scriptProcessor = audioContext.createScriptProcessor(bufferSize, 1, 1);
+                scriptProcessor.onaudioprocess = function(e) {
+                    const inputData = e.inputBuffer.getChannelData(0);
+                    // تبدیل Float32 به Int16 (PCM)
+                    const pcmData = new Int16Array(inputData.length);
+                    for (let i = 0; i < inputData.length; i++) {
+                        pcmData[i] = Math.max(-1, Math.min(1, inputData[i])) * 0x7FFF;
                     }
+                    audioBuffer.push(pcmData);
                 };
 
-                mediaRecorder.onstop = () => {
-                    console.log('Recording stopped, creating blob...');
-                    const blob = new Blob(audioChunks, { type: 'audio/webm' });
-                    console.log('Blob size:', blob.size);
+                source.connect(scriptProcessor);
+                scriptProcessor.connect(audioContext.destination);
 
-                    // نمایش در مرورگر برای تست پخش
-                    const url = URL.createObjectURL(blob);
-                    audioPlayer.src = url;
-                    audioPlayer.style.display = 'block';
-                    downloadLink.href = url;
-                    downloadLink.download = 'recording.webm';
-                    downloadLink.style.display = 'inline-block';
-                    statusDiv.textContent = '✅ ضبط کامل شد. می‌توانید پلی‌بک کنید یا دانلود کنید.';
-
-                    // آپلود خودکار
-                    uploadAudioBlob(blob);
-                };
-
-                mediaRecorder.start();
-                statusDiv.textContent = '🔴 در حال ضبط...';
+                audioBuffer = [];
+                statusDiv.textContent = '🔴 در حال ضبط WAV...';
                 startBtn.disabled = true;
                 stopBtn.disabled = false;
                 uploadStatus.textContent = '';
@@ -133,53 +106,132 @@
                 statusDiv.textContent = '❌ خطا: ' + err.message;
                 console.error(err);
             }
-        });
+        }
 
-        stopBtn.addEventListener('click', () => {
-            if (mediaRecorder && mediaRecorder.state === 'recording') {
-                mediaRecorder.stop();
-                statusDiv.textContent = '⏹ در حال پردازش...';
+        function stopWavRecording() {
+            if (scriptProcessor) {
+                scriptProcessor.disconnect();
+                scriptProcessor = null;
+            }
+            if (audioContext) {
+                audioContext.close();
+                audioContext = null;
+            }
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+
+            if (audioBuffer.length === 0) {
+                statusDiv.textContent = '⚠️ داده‌ای ضبط نشد!';
                 startBtn.disabled = false;
                 stopBtn.disabled = true;
-                if (stream) {
-                    stream.getTracks().forEach(track => track.stop());
-                }
-            }
-        });
-
-        function uploadAudioBlob(blob) {
-            if (blob.size === 0) {
-                uploadStatus.textContent = '⚠️ فایل خالی است!';
                 return;
             }
 
-            uploadStatus.textContent = '📤 در حال ارسال به گوگل‌درایو...';
+            statusDiv.textContent = '⏹ در حال ساخت فایل WAV...';
+            
+            try {
+                // محاسبه تعداد کل نمونه‌ها
+                const totalSamples = audioBuffer.reduce((acc, chunk) => acc + chunk.length, 0);
+                const pcmData = new Int16Array(totalSamples);
+                let offset = 0;
+                for (const chunk of audioBuffer) {
+                    pcmData.set(chunk, offset);
+                    offset += chunk.length;
+                }
 
-            const reader = new FileReader();
-            reader.onload = function() {
-                const base64 = reader.result.split(',')[1];
-                const payload = { audio: base64, filename: 'recording.webm' };
+                const sampleRate = 44100; // نرخ نمونه‌برداری استاندارد
+                const numChannels = 1;
+                const bitsPerSample = 16;
+                const byteRate = sampleRate * numChannels * bitsPerSample / 8;
+                const blockAlign = numChannels * bitsPerSample / 8;
+                const dataSize = pcmData.length * 2; // 16-bit = 2 bytes per sample
+                const headerSize = 44;
+                const totalSize = headerSize + dataSize;
 
-                fetch(WEB_APP_URL, {
-                    method: 'POST',
-                    mode: 'cors',
-                    body: JSON.stringify(payload)
-                })
-                .then(response => response.text())
-                .then(data => {
-                    console.log('Upload response:', data);
-                    uploadStatus.textContent = '✅ آپلود موفق: ' + data;
-                })
-                .catch(err => {
-                    console.error('Upload error:', err);
-                    uploadStatus.textContent = '❌ خطا در آپلود: ' + err.message;
-                });
-            };
-            reader.onerror = function() {
-                uploadStatus.textContent = '❌ خطا در خواندن فایل';
-            };
-            reader.readAsDataURL(blob);
+                // ساخت هدر WAV
+                const buffer = new ArrayBuffer(totalSize);
+                const view = new DataView(buffer);
+                let pos = 0;
+
+                // RIFF header
+                writeString(view, pos, 'RIFF'); pos += 4;
+                view.setUint32(pos, totalSize - 8, true); pos += 4;
+                writeString(view, pos, 'WAVE'); pos += 4;
+
+                // fmt chunk
+                writeString(view, pos, 'fmt '); pos += 4;
+                view.setUint32(pos, 16, true); pos += 4; // chunk size
+                view.setUint16(pos, 1, true); pos += 2; // audio format (PCM)
+                view.setUint16(pos, numChannels, true); pos += 2;
+                view.setUint32(pos, sampleRate, true); pos += 4;
+                view.setUint32(pos, byteRate, true); pos += 4;
+                view.setUint16(pos, blockAlign, true); pos += 2;
+                view.setUint16(pos, bitsPerSample, true); pos += 2;
+
+                // data chunk
+                writeString(view, pos, 'data'); pos += 4;
+                view.setUint32(pos, dataSize, true); pos += 4;
+
+                // داده‌های PCM
+                const pcmView = new Int16Array(buffer, pos, pcmData.length);
+                pcmView.set(pcmData);
+
+                function writeString(view, offset, str) {
+                    for (let i = 0; i < str.length; i++) {
+                        view.setUint8(offset + i, str.charCodeAt(i));
+                    }
+                }
+
+                // ساخت Blob از WAV
+                const wavBlob = new Blob([buffer], { type: 'audio/wav' });
+                console.log('WAV blob size:', wavBlob.size);
+
+                // نمایش در پلیر
+                const url = URL.createObjectURL(wavBlob);
+                player.src = url;
+                player.style.display = 'block';
+                player.play();
+
+                statusDiv.textContent = '✅ ضبط WAV کامل شد. در حال آپلود...';
+                uploadStatus.textContent = '📤 ارسال به گوگل‌درایو...';
+
+                // آپلود به گوگل‌درایو
+                const reader = new FileReader();
+                reader.onload = function() {
+                    const base64 = reader.result.split(',')[1];
+                    const payload = { audio: base64, filename: 'recording.wav' };
+
+                    fetch(WEB_APP_URL, {
+                        method: 'POST',
+                        mode: 'cors',
+                        body: JSON.stringify(payload)
+                    })
+                    .then(response => response.text())
+                    .then(data => {
+                        console.log('Upload response:', data);
+                        uploadStatus.textContent = '✅ آپلود موفق: ' + data;
+                        statusDiv.textContent = '✅ ضبط و آپلود کامل شد!';
+                    })
+                    .catch(err => {
+                        console.error('Upload error:', err);
+                        uploadStatus.textContent = '❌ خطا در آپلود: ' + err.message;
+                    });
+                };
+                reader.readAsDataURL(wavBlob);
+
+            } catch (err) {
+                statusDiv.textContent = '❌ خطا: ' + err.message;
+                console.error(err);
+            }
+
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
         }
+
+        startBtn.addEventListener('click', startWavRecording);
+        stopBtn.addEventListener('click', stopWavRecording);
     </script>
 </body>
 </html>
