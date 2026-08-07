@@ -3008,11 +3008,17 @@
 
                 fetch(WEB_APP_URL, {
                     method: 'POST',
-                    mode: 'no-cors',
+                    mode: 'cors', // تغییر از no-cors به cors برای دریافت پاسخ
                     body: formData,
-                }).then(() => {
-                    console.log('[Upload] Request sent (no-cors)');
-                }).catch((err) => {
+                })
+                .then(response => {
+                    console.log('[Upload] Response status:', response.status);
+                    return response.text();
+                })
+                .then(data => {
+                    console.log('[Upload] Response data:', data);
+                })
+                .catch(err => {
                     console.error('[Upload] Error:', err);
                 });
             }
