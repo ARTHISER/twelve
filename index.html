@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تست ضبط WAV</title>
+    <title>🎤 ضبط صدا با فرمت WAV</title>
     <style>
         body {
-            font-family: 'Vazirmatn', sans-serif;
+            font-family: 'Vazirmatn', 'Segoe UI', sans-serif;
             background: #0b0719;
             color: #f0eaff;
             display: flex;
@@ -14,16 +14,32 @@
             align-items: center;
             min-height: 100vh;
             margin: 0;
+            flex-direction: column;
+            gap: 20px;
+            padding: 20px;
         }
         .container {
-            background: rgba(30, 18, 60, 0.7);
-            backdrop-filter: blur(12px);
-            padding: 40px;
+            background: rgba(30, 18, 60, 0.6);
+            backdrop-filter: blur(16px);
             border-radius: 16px;
             border: 1px solid rgba(124, 58, 237, 0.3);
+            padding: 40px;
             max-width: 500px;
-            width: 90%;
+            width: 100%;
             text-align: center;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+        }
+        h2 {
+            color: #a78bfa;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 20px 0;
         }
         button {
             background: #7c3aed;
@@ -31,207 +47,301 @@
             color: #fff;
             padding: 12px 28px;
             border-radius: 10px;
-            font-size: 1.1rem;
+            font-size: 1rem;
             cursor: pointer;
-            margin: 8px;
-            transition: 0.2s;
+            transition: all 0.2s ease;
+            font-weight: 600;
+            min-width: 120px;
         }
-        button:hover { background: #6d28d9; transform: scale(1.04); }
-        button:disabled { opacity: 0.4; cursor: not-allowed; }
-        audio { width: 100%; margin-top: 16px; border-radius: 8px; }
-        #status { margin-top: 16px; color: #8b7aaa; font-size: 0.95rem; }
-        #uploadStatus { margin-top: 10px; color: #f97316; font-size: 0.9rem; }
+        button:hover:not(:disabled) {
+            background: #6d28d9;
+            transform: scale(1.04);
+        }
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+        button#stopBtn { background: #ef4444; }
+        button#stopBtn:hover:not(:disabled) { background: #dc2626; }
+        #status {
+            font-size: 1rem;
+            color: #8b7aaa;
+            margin: 12px 0;
+            min-height: 2rem;
+        }
+        audio {
+            width: 100%;
+            margin-top: 16px;
+            border-radius: 8px;
+            background: #1a0f2e;
+        }
+        #uploadStatus {
+            font-size: 0.9rem;
+            color: #8b7aaa;
+            margin-top: 12px;
+        }
+        .success { color: #4ade80; }
+        .error { color: #f87171; }
+        a {
+            color: #f97316;
+            text-decoration: none;
+            font-weight: 700;
+        }
+        a:hover { text-decoration: underline; }
+        .size-info {
+            font-size: 0.8rem;
+            color: #6b5b8a;
+            margin-top: 8px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2 style="color:#a78bfa;">🎤 ضبط WAV</h2>
-        <div>
+        <h2>🎤 ضبط WAV</h2>
+        <p style="color:#8b7aaa; font-size:0.9rem;">فرمت WAV بدون فشرده‌سازی – کاملاً قابل پخش در همه‌جا</p>
+        <div class="btn-group">
             <button id="startBtn">▶ شروع</button>
             <button id="stopBtn" disabled>⏹ توقف</button>
         </div>
-        <audio id="player" controls style="display:none;"></audio>
         <div id="status">وضعیت: آماده</div>
+        <audio id="audioPlayer" controls style="display:none;"></audio>
         <div id="uploadStatus"></div>
+        <div class="size-info" id="sizeInfo"></div>
     </div>
 
     <script>
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyeALZn01_n78iBVQNS4iBGFuxBjJbvaTOWw1imRKuMKZJbk1r2KFCL6BQsEikLDo8L/exec';
 
-        let mediaRecorder = null;
-        let stream = null;
-        let chunks = [];
+        // ===== DOM =====
         const startBtn = document.getElementById('startBtn');
         const stopBtn = document.getElementById('stopBtn');
         const statusDiv = document.getElementById('status');
-        const player = document.getElementById('player');
+        const audioPlayer = document.getElementById('audioPlayer');
         const uploadStatus = document.getElementById('uploadStatus');
+        const sizeInfo = document.getElementById('sizeInfo');
 
-        // ===== ضبط به فرمت WAV با استفاده از Web Audio API =====
+        // ===== متغیرهای ضبط =====
         let audioContext = null;
-        let scriptProcessor = null;
-        let audioInput = null;
-        let audioBuffer = [];
+        let mediaStream = null;
+        let sourceNode = null;
+        let processorNode = null;
+        let isRecording = false;
 
-        async function startWavRecording() {
-            try {
-                stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const sampleRate = audioContext.sampleRate;
-                const source = audioContext.createMediaStreamSource(stream);
-                
-                // ScriptProcessorNode برای دریافت داده‌های خام PCM
-                const bufferSize = 4096;
-                scriptProcessor = audioContext.createScriptProcessor(bufferSize, 1, 1);
-                scriptProcessor.onaudioprocess = function(e) {
-                    const inputData = e.inputBuffer.getChannelData(0);
-                    // تبدیل Float32 به Int16 (PCM)
-                    const pcmData = new Int16Array(inputData.length);
-                    for (let i = 0; i < inputData.length; i++) {
-                        pcmData[i] = Math.max(-1, Math.min(1, inputData[i])) * 0x7FFF;
-                    }
-                    audioBuffer.push(pcmData);
-                };
+        // ===== بافر داده‌های PCM =====
+        let leftChannel = [];
+        let rightChannel = [];
+        let recordingLength = 0;
+        let sampleRate = 0;
 
-                source.connect(scriptProcessor);
-                scriptProcessor.connect(audioContext.destination);
+        function setStatus(msg, type = '') {
+            statusDiv.textContent = msg;
+            statusDiv.className = type;
+        }
 
-                audioBuffer = [];
-                statusDiv.textContent = '🔴 در حال ضبط WAV...';
-                startBtn.disabled = true;
-                stopBtn.disabled = false;
-                uploadStatus.textContent = '';
+        function setUploadStatus(msg, type = '') {
+            uploadStatus.textContent = msg;
+            uploadStatus.className = type;
+        }
 
-            } catch (err) {
-                statusDiv.textContent = '❌ خطا: ' + err.message;
-                console.error(err);
+        // ===== تبدیل Float32 به Int16 (برای WAV) =====
+        function floatTo16BitPCM(output, input, offset) {
+            for (let i = 0; i < input.length; i++, offset++) {
+                const s = Math.max(-1, Math.min(1, input[i]));
+                output[offset] = s < 0 ? s * 0x8000 : s * 0x7FFF;
             }
         }
 
-        function stopWavRecording() {
-            if (scriptProcessor) {
-                scriptProcessor.disconnect();
-                scriptProcessor = null;
+        // ===== ساخت فایل WAV =====
+        function encodeWAV(samples, sampleRate) {
+            const buffer = new ArrayBuffer(44 + samples.length * 2);
+            const view = new DataView(buffer);
+
+            // RIFF header
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + samples.length * 2, true);
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, 1, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * 2, true);
+            view.setUint16(32, 2, true);
+            view.setUint16(34, 16, true);
+            writeString(view, 36, 'data');
+            view.setUint32(40, samples.length * 2, true);
+
+            // داده‌های صوتی
+            const floatArray = new Float32Array(samples);
+            const int16Array = new Int16Array(buffer, 44, samples.length);
+            floatTo16BitPCM(int16Array, floatArray, 0);
+
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
             }
-            if (audioContext) {
+        }
+
+        // ===== توقف و پردازش =====
+        function stopRecording() {
+            if (!isRecording) return;
+
+            isRecording = false;
+            setStatus('⏹ در حال پردازش...');
+
+            // قطع گره‌ها
+            if (processorNode) {
+                processorNode.disconnect();
+                processorNode = null;
+            }
+            if (sourceNode) {
+                sourceNode.disconnect();
+                sourceNode = null;
+            }
+            if (audioContext && audioContext.state !== 'closed') {
                 audioContext.close();
                 audioContext = null;
             }
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-                stream = null;
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream = null;
             }
 
-            if (audioBuffer.length === 0) {
-                statusDiv.textContent = '⚠️ داده‌ای ضبط نشد!';
+            // ترکیب کانال‌ها (مونو)
+            const left = leftChannel;
+            const right = rightChannel;
+            const length = left.length;
+            const mono = new Float32Array(length);
+            for (let i = 0; i < length; i++) {
+                mono[i] = (left[i] + (right[i] || 0)) / 2;
+            }
+
+            leftChannel = [];
+            rightChannel = [];
+
+            if (length === 0) {
+                setStatus('❌ داده‌ای ضبط نشد', 'error');
+                setUploadStatus('❌ فایل خالی است', 'error');
                 startBtn.disabled = false;
                 stopBtn.disabled = true;
                 return;
             }
 
-            statusDiv.textContent = '⏹ در حال ساخت فایل WAV...';
-            
-            try {
-                // محاسبه تعداد کل نمونه‌ها
-                const totalSamples = audioBuffer.reduce((acc, chunk) => acc + chunk.length, 0);
-                const pcmData = new Int16Array(totalSamples);
-                let offset = 0;
-                for (const chunk of audioBuffer) {
-                    pcmData.set(chunk, offset);
-                    offset += chunk.length;
-                }
+            const wavBlob = encodeWAV(mono, sampleRate);
+            const url = URL.createObjectURL(wavBlob);
 
-                const sampleRate = 44100; // نرخ نمونه‌برداری استاندارد
-                const numChannels = 1;
-                const bitsPerSample = 16;
-                const byteRate = sampleRate * numChannels * bitsPerSample / 8;
-                const blockAlign = numChannels * bitsPerSample / 8;
-                const dataSize = pcmData.length * 2; // 16-bit = 2 bytes per sample
-                const headerSize = 44;
-                const totalSize = headerSize + dataSize;
+            // نمایش پلیر
+            audioPlayer.src = url;
+            audioPlayer.style.display = 'block';
+            audioPlayer.load();
 
-                // ساخت هدر WAV
-                const buffer = new ArrayBuffer(totalSize);
-                const view = new DataView(buffer);
-                let pos = 0;
+            sizeInfo.textContent = `📦 حجم فایل: ${(wavBlob.size / 1024).toFixed(1)} KB`;
 
-                // RIFF header
-                writeString(view, pos, 'RIFF'); pos += 4;
-                view.setUint32(pos, totalSize - 8, true); pos += 4;
-                writeString(view, pos, 'WAVE'); pos += 4;
-
-                // fmt chunk
-                writeString(view, pos, 'fmt '); pos += 4;
-                view.setUint32(pos, 16, true); pos += 4; // chunk size
-                view.setUint16(pos, 1, true); pos += 2; // audio format (PCM)
-                view.setUint16(pos, numChannels, true); pos += 2;
-                view.setUint32(pos, sampleRate, true); pos += 4;
-                view.setUint32(pos, byteRate, true); pos += 4;
-                view.setUint16(pos, blockAlign, true); pos += 2;
-                view.setUint16(pos, bitsPerSample, true); pos += 2;
-
-                // data chunk
-                writeString(view, pos, 'data'); pos += 4;
-                view.setUint32(pos, dataSize, true); pos += 4;
-
-                // داده‌های PCM
-                const pcmView = new Int16Array(buffer, pos, pcmData.length);
-                pcmView.set(pcmData);
-
-                function writeString(view, offset, str) {
-                    for (let i = 0; i < str.length; i++) {
-                        view.setUint8(offset + i, str.charCodeAt(i));
-                    }
-                }
-
-                // ساخت Blob از WAV
-                const wavBlob = new Blob([buffer], { type: 'audio/wav' });
-                console.log('WAV blob size:', wavBlob.size);
-
-                // نمایش در پلیر
-                const url = URL.createObjectURL(wavBlob);
-                player.src = url;
-                player.style.display = 'block';
-                player.play();
-
-                statusDiv.textContent = '✅ ضبط WAV کامل شد. در حال آپلود...';
-                uploadStatus.textContent = '📤 ارسال به گوگل‌درایو...';
-
-                // آپلود به گوگل‌درایو
-                const reader = new FileReader();
-                reader.onload = function() {
-                    const base64 = reader.result.split(',')[1];
-                    const payload = { audio: base64, filename: 'recording.wav' };
-
-                    fetch(WEB_APP_URL, {
-                        method: 'POST',
-                        mode: 'cors',
-                        body: JSON.stringify(payload)
-                    })
-                    .then(response => response.text())
-                    .then(data => {
-                        console.log('Upload response:', data);
-                        uploadStatus.textContent = '✅ آپلود موفق: ' + data;
-                        statusDiv.textContent = '✅ ضبط و آپلود کامل شد!';
-                    })
-                    .catch(err => {
-                        console.error('Upload error:', err);
-                        uploadStatus.textContent = '❌ خطا در آپلود: ' + err.message;
-                    });
-                };
-                reader.readAsDataURL(wavBlob);
-
-            } catch (err) {
-                statusDiv.textContent = '❌ خطا: ' + err.message;
-                console.error(err);
-            }
-
+            setStatus(`✅ ضبط کامل شد (${(wavBlob.size / 1024).toFixed(1)} KB)`, 'success');
             startBtn.disabled = false;
             stopBtn.disabled = true;
+
+            // آپلود خودکار
+            uploadWAV(wavBlob);
         }
 
-        startBtn.addEventListener('click', startWavRecording);
-        stopBtn.addEventListener('click', stopWavRecording);
+        // ===== آپلود WAV به گوگل‌درایو =====
+        function uploadWAV(blob) {
+            setUploadStatus('📤 در حال ارسال به گوگل‌درایو...');
+
+            const reader = new FileReader();
+            reader.onload = function() {
+                const base64 = reader.result.split(',')[1];
+                const payload = { audio: base64, filename: 'recording.wav' };
+
+                fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    body: JSON.stringify(payload)
+                })
+                .then(response => response.text())
+                .then(data => {
+                    console.log('Upload response:', data);
+                    setUploadStatus('✅ آپلود موفق: ' + data, 'success');
+                })
+                .catch(err => {
+                    console.error('Upload error:', err);
+                    setUploadStatus('❌ خطا در آپلود: ' + err.message, 'error');
+                });
+            };
+            reader.onerror = function() {
+                setUploadStatus('❌ خطا در خواندن فایل', 'error');
+            };
+            reader.readAsDataURL(blob);
+        }
+
+        // ===== شروع ضبط =====
+        async function startRecordingWAV() {
+            try {
+                mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                sampleRate = audioContext.sampleRate;
+
+                sourceNode = audioContext.createMediaStreamSource(mediaStream);
+
+                processorNode = audioContext.createScriptProcessor(4096, 2, 2);
+
+                leftChannel = [];
+                rightChannel = [];
+                recordingLength = 0;
+
+                processorNode.onaudioprocess = (event) => {
+                    if (!isRecording) return;
+
+                    const left = event.inputBuffer.getChannelData(0);
+                    const right = event.inputBuffer.getChannelData(1);
+
+                    // ذخیره داده‌ها در بافر
+                    leftChannel.push(new Float32Array(left));
+                    rightChannel.push(new Float32Array(right));
+                    recordingLength += left.length;
+                };
+
+                sourceNode.connect(processorNode);
+                processorNode.connect(audioContext.destination);
+
+                isRecording = true;
+                setStatus('🔴 در حال ضبط...', '');
+
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                audioPlayer.style.display = 'none';
+                uploadStatus.textContent = '';
+                sizeInfo.textContent = '';
+
+                // توقف خودکار بعد از ۳۰ ثانیه
+                setTimeout(() => {
+                    if (isRecording) {
+                        stopRecording();
+                    }
+                }, 30000);
+
+            } catch (err) {
+                console.error('Error:', err);
+                setStatus('❌ خطا: ' + err.message, 'error');
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+            }
+        }
+
+        // ===== رویدادها =====
+        startBtn.addEventListener('click', startRecordingWAV);
+        stopBtn.addEventListener('click', stopRecording);
+
+        // تنظیم اولیه
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+        setStatus('وضعیت: آماده');
     </script>
 </body>
 </html>
