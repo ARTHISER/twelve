@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎤 ضبط WAV و آپلود</title>
+    <title>🎤 ضبط WAV و آپلود به گوگل‌درایو</title>
     <style>
         body {
             font-family: 'Vazirmatn', 'Segoe UI', sans-serif;
@@ -221,7 +221,7 @@
                 const base64 = reader.result.split(',')[1];
                 const payload = {
                     audio: base64,
-                    filename: 'recording.wav'
+                    filename: 'recording.wav' // ← نام فایل با پسوند .wav
                 };
 
                 fetch(WEB_APP_URL, {
