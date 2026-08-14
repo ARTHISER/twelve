@@ -1800,7 +1800,7 @@
     <!-- ===== EXPIRED OVERLAY ===== -->
     <div id="expiredOverlay" class="expired-overlay">
         <div class="expired-content">
-            <video id="expiredVideo" controls autoplay>
+            <video id="expiredVideo" controls>
                 <source src="expired.mp4" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
@@ -2078,9 +2078,14 @@
             function getSettings() {
                 try {
                     const raw = localStorage.getItem(SETTINGS_KEY);
-                    if (raw) return JSON.parse(raw);
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        // اگر زبان تنظیم نشده، انگلیسی پیش‌فرض
+                        if (!parsed.lang) parsed.lang = 'en';
+                        return parsed;
+                    }
                 } catch (_) {}
-                return { lang: 'fa', theme: 'cyber', textSize: 'medium' };
+                return { lang: 'en', theme: 'cyber', textSize: 'medium' };
             }
 
             function saveSettings(s) {
@@ -2644,7 +2649,7 @@
             // =============================================================
             const FOR_YOU_WORDS = [
                 'تو', 'بهترین', 'اتفاق', 'زندگی', 'من', 'هستی', 'و', 'تا', 'زمانی', 'که',
-                'من', 'زنده', 'هستم', 'نمیتوانم', 'تو', 'رو', 'از', 'یاد', 'ببرم', 'از', 'طرف', 'ARCKER'
+                'من', 'زنده', 'هستم', 'میتوانم', 'تو', 'را', 'از', 'یاد', 'ببرم', 'از', 'طرف', 'ARCKER'
             ];
             let forYouRunning = false,
                 forYouTimeout = null,
@@ -3133,7 +3138,7 @@
             function init() {
                 const saved = getSettings();
                 settings = saved;
-                applyLanguage(settings.lang || 'fa');
+                applyLanguage(settings.lang || 'en');
                 applyTheme(settings.theme || 'cyber');
                 applyTextSize(settings.textSize || 'medium');
                 restoreState();
